@@ -1,0 +1,22 @@
+Package: sktools
+Type: Package
+Title: Helpful functions used in my courses
+Version: 0.05
+Date: 2013-04-23
+Author: Sebastian Kranz
+Maintainer: Sebastian Kranz <sebastian.kranz@uni-ulm.com>
+Description: Several helpful functions that I use in my courses
+License: GPL (>= 2)
+Depends:
+    data.table,
+    lubridate,
+    stringr,
+    R.utils
+Collate:
+    'EmpIOUtils.r'
+    'rampl.r'
+    'rgmpl.r'
+    'rgmpl_glpkApi.r'
+    'examples2Rd.r'
+    'sktools.r'
+    'restorepoint.R'

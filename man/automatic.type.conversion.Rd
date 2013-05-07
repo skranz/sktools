@@ -1,0 +1,32 @@
+\name{automatic.type.conversion}
+\alias{automatic.type.conversion}
+\title{Try to transform a vector or columns that are stored as characters or factors of a data.frame automatically in the approbriate types}
+\usage{
+  automatic.type.conversion(x, max.failure.rate = 0.3,
+    quiet = FALSE, name = "", cols = NULL,
+    date.class = "POSIX.ct", date.time.class = "POSIX.ct",
+    factorsAsStrings = FALSE, stringsAsFactors = FALSE,
+    ...)
+}
+\arguments{
+  \item{x}{a vector or data frame that shall be converted}
+
+  \item{max.failure.rate}{maximum share of rows that can be
+  failed to convert so that conversion still takes place}
+}
+\description{
+  So far just attempts to convert date and date.times
+}
+
+\examples{
+  df = data.frame(text=c("c","b","a"),mixed=as.factor(c("a",NA,56)),
+    dates = c("1.1.1975","1.1.2010","8.3.1999"),
+    date.times = c("1.1.1975 00:10","2010-5-5 12pm","4:30:15"),
+    times = c("00:10","12pm",5),
+    char.num = as.factor(c("1973","1972","3")),
+    half.num = c("145","..","1345")
+  )
+  df =automatic.type.conversion(df,quiet=FALSE)
+  d = df$dates
+  d[1]<"1.1.2012"
+}

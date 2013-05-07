@@ -1,0 +1,11 @@
+\name{remove.global.variables}
+\alias{remove.global.variables}
+\title{Remove all global variables (not functions)}
+\usage{
+  remove.global.variables(exclude = NULL,
+    envir = .GlobalEnv)
+}
+\description{
+  Remove all global variables (not functions)
+}
+

@@ -1,0 +1,11 @@
+\name{nc}
+\alias{nc}
+\title{Creates a vector that is named by the names of its arguments}
+\usage{
+  nc(...)
+}
+\description{
+  Creates a vector that is named by the names of its
+  arguments
+}
+
