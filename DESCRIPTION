@@ -21,3 +21,4 @@ Collate:
     'examples2Rd.r'
     'sktools.r'
     'restorepoint.R'
+    'wu-hausman-test.r'

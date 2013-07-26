@@ -1,0 +1,100 @@
+\name{wu.hausman.test}
+\alias{wu.hausman.test}
+\title{A Wu-Hausman Test for a single endogenous variable}
+\usage{
+  wu.hausman.test(y, X.exo, X.endo, Z)
+}
+\arguments{
+  \item{y}{the vector of dependent variables}
+
+  \item{X}{the matrix of explanatory variables (endogenos &
+  exogenous)}
+
+  \item{Z}{the matrix of instruments (excluded & included
+  instruments)}
+
+  \item{endo}{vector or matrix of variables that might be
+  endogenous}
+}
+\description{
+  See e.g. Green (2003) Econometric Analysis for a
+  description of the Wu-Hausman-Test
+}
+
+\examples{
+  library(sktools)  
+  # Ice cream model
+  T = 100
+  beta0 = 100; beta1  = -1; beta2 = 40
+  
+  s   = rep(0:1, length.out=T) # Season: winter summer fluctuating
+  eps = rnorm(T,0,2)
+  c   = runif(T,10,20)
+  
+  # Optimal price if the firm knows season s and u
+  p = (beta0+beta2*s+eps - beta1*c) / (2*-beta1)
+  
+  # Alternatively: prices are a random markup above cost c
+  p = c*runif(T,1,1.1)
+  
+  # Compute demand
+  q = beta0 + beta1*p+ beta2*s + eps
+  
+  # Matrix of instruments
+  Z = cbind(1,c,s)
+  
+  # Run the Wu-Hausman test for testing endogeniety of p
+  wu.hausman.test(y=q,X.exo=cbind(1,s),X.endo=p,Z=Z)
+
+  ###########################################################################################
+  # Run a systematic simulation study of 
+  # the Wu-Hausman Test
+  ###########################################################################################
+
+  # This function simulates and estimates a demand function and
+  # returns the p-value of a Wu-Hausman test for endogeniety of the price
+  sim.and.test = function() {
+    # Ice cream model
+    T = 100
+    beta0 = 100; beta1  = -1; beta2 = 40
+    
+    s   = rep(0:1, length.out=T) # Season: winter summer fluctuating
+    eps = rnorm(T,0,2)
+    c   = runif(T,10,20)
+    
+    # Optimal price if the firm knows season s and u
+    p = (beta0+beta2*s+eps - beta1*c) / (2*-beta1)
+    
+    # Alternatively: prices are a random markup above cost c
+    p = c*runif(T,1,1.1)
+    
+    # Compute demand
+    q = beta0 + beta1*p+ beta2*s + eps
+    
+    # Matrix of instruments
+    Z = cbind(1,c,s)
+    
+    # Run the Wu-Hausman test for testing endogeniety of p
+    wu.hausman.test(y=q,X.exo=cbind(1,s),X.endo=p,Z=Z)$p.value
+  }
+
+  # Perform a simulation study of our implementation of the Wu-Hausman test
+  sim = simulation.study(sim.and.test,repl=1000)
+
+  # I just need to adapt the results (won't be neccessary in a
+  # newer version of sktools)
+  sim = as.data.frame(sim)
+  colnames(sim)[2] = "p.value"
+  
+  # Show the results and draw a histogram
+  head(sim)
+  hist(sim$p.value)
+  # If the data is generated such that the Null hypothesis that
+  # p is exogenous holds, then the p-values should be uniformly
+  # distributed.
+  
+  # Use a Kolmogorov-Smirnov Test for whether p-values are uniformely distributed 
+  #ks.test(sim$p.value,"punif",min=0,max=1)
+  
+  
+}
