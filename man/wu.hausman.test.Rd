@@ -35,10 +35,12 @@
   p = (beta0+beta2*s+eps - beta1*c) / (2*-beta1)
   
   # Alternatively: prices are a random markup above cost c
-  p = c*runif(T,1,1.1)
+  #p = c*runif(T,1,1.1)
   
   # Compute demand
   q = beta0 + beta1*p+ beta2*s + eps
+
+  
   
   # Matrix of instruments
   Z = cbind(1,c,s)

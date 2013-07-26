@@ -6,8 +6,9 @@
 #' @param X the matrix of explanatory variables (endogenos & exogenous)
 #' @param Z the matrix of instruments (excluded & included instruments)
 #' @param endo vector or matrix of variables that might be endogenous
+#' @export
 wu.hausman.test = function(y,X.exo,X.endo,Z) {
-  #restore.point("wu.hausman.test")
+  restore.point("wu.hausman.test")
   # 1st Stage Regression of 2SLS compute fitted endogenous variables
   reg0 = lm.fit(x=Z,y=X.endo)
   X.endo.hat = reg0$fitted.values
@@ -45,8 +46,8 @@ wu.hausman.test = function(y,X.exo,X.endo,Z) {
   res  
 }
 
-# This function will be called when the result of
-# wu.hausman.test will be printed
+#' This function will be called when the results of a wu.hausman.test will be printed
+#' @export
 print.WuHausmanTest = function(test) {
   str = paste0("Wu-Hausman-Test for Endogeniety",
 "\n Null Hypothesis: All variables are exogenous.",
@@ -71,10 +72,12 @@ examples.wu.hausman.test = function() {
   p = (beta0+beta2*s+eps - beta1*c) / (2*-beta1)
   
   # Alternatively: prices are a random markup above cost c
-  p = c*runif(T,1,1.1)
+  #p = c*runif(T,1,1.1)
   
   # Compute demand
   q = beta0 + beta1*p+ beta2*s + eps
+
+  
   
   # Matrix of instruments
   Z = cbind(1,c,s)
