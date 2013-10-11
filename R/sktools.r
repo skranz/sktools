@@ -39,7 +39,7 @@ to.date.time = function(x, orders = c(c(date.orders),outer(date.orders,time.orde
 #' @param x a vector or data frame that shall be converted
 #' @param max.failure.rate maximum share of rows that can be failed to convert so that conversion still takes place
 #' @export
-automatic.type.conversion = function(x,max.failure.rate = 0.3,quiet=FALSE,name="",cols=NULL,date.class="POSIX.ct",date.time.class="POSIX.ct",factorsAsStrings=FALSE,stringsAsFactors=FALSE,...) {
+automatic.type.conversion = function(x,max.failure.rate = 0.3,quiet=FALSE,name="",cols=NULL,date.class="POSIX.ct",date.time.class="POSIX.ct",factorsAsStrings=FALSE,stringsAsFactors=FALSE,thousand.sep=NULL,...) {
   restore.point("automatic.type.conversion")
   
   # When called with a data.frame convert seperately
@@ -56,7 +56,7 @@ automatic.type.conversion = function(x,max.failure.rate = 0.3,quiet=FALSE,name="
       cols = 1:NCOL(df)
     }
     for (col in cols) {
-      df[,col] <- automatic.type.conversion(df[,col],max.failure.rate = max.failure.rate,quiet=quiet,name=names[col],cols=NULL,date.class=date.class,date.time.class=date.time.class,factorsAsStrings=factorsAsStrings,stringsAsFactors=stringsAsFactors,...)
+      df[,col] <- automatic.type.conversion(df[,col],max.failure.rate = max.failure.rate,quiet=quiet,name=names[col],cols=NULL,date.class=date.class,date.time.class=date.time.class,factorsAsStrings=factorsAsStrings,stringsAsFactors=stringsAsFactors,thousand.sep=thousand.sep,...)
     }
     return(df)
   }
@@ -80,8 +80,18 @@ automatic.type.conversion = function(x,max.failure.rate = 0.3,quiet=FALSE,name="
   org.na = which(is.na(x))
   
   x.cand = list()
+  # Date time
   x.cand[[1]] = to.date.time(x,quiet=quiet,...)
-  x.cand[[2]] = suppressWarnings(tryCatch(as.numeric(x), error = function(e) return(rep(NA,length(x.cand)) )))
+  # Numeric
+  
+  
+  
+  if (!is.null(thousand.sep)) {
+    x.mod = gsub(thousand.sep,"",x)
+  } else {
+    x.mod = x
+  }  
+  x.cand[[2]] = suppressWarnings(tryCatch(as.numeric(x.mod), error = function(e) return(rep(NA,length(x.cand)) )))
   
   
   num.na = sapply(x.cand,function(x) sum(is.na(x)))
@@ -144,4 +154,34 @@ named = function(x,names,colnames,rownames) {
 
 examples.named = function() {
   named(1:3,c("A","B","C"))
+}
+
+
+#' Convert data in matrix format to grid format with key columns corresponding to for row and col names and a value colum
+#' @param dat a data frame or matrix in matrix format
+#' @param row.var name of the variable corresponding to different rows
+#' @param col.var name of the variable corresponding to different columns
+#' @param val.var name of the variable corresponding to the values of the matrix
+#' @param row.values values of the row variable
+#' @param col.values values of the column variable
+#' @export
+matrix.to.grid = function(dat, row.var="row", col.var="col", val.var="value", row.values = rownames(dat), col.values=colnames(dat)) {
+  
+  nr = NROW(dat); nc = NCOL(dat)
+  
+  if (is.null(row.values) & nr > 0)
+    row.values = 1:nr
+  if (is.null(col.values) & nc > 0)
+    col.values = 1:nc
+  row.col = rep(row.values, times=nc)
+  col.col = rep(col.values, each=nr)
+  if (is(dat,"matrix")) {
+    val.col = dat
+    dim(val.col) = length(val.col)
+  } else {
+    val.col = unlist(dat)
+  }
+  df = data.frame(row.col,col.col,val.col)
+  colnames(df) = c(row.var,col.var,val.var)
+  df 
 }

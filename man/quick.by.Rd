@@ -33,7 +33,7 @@
   Sebastian Kranz
 }
 
-\examples{
+\examples{\dontrun{
   # Simulate a data set of time needed to run a given distance
   # individuals differ by age and gender
   T <- 10
@@ -88,4 +88,4 @@
     by = by(df,df$ind,function(df) sum(df$val)),
     replications=2,order="relative")
   # While using data.table directly is the fastest method, quick.by is not much slower and substantially faster than other methods. There is still substantial room for speeed improvement for add.col = TRUE
-}
+}}

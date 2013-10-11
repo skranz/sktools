@@ -18,10 +18,10 @@
   length.
 }
 
-\examples{
+\examples{\dontrun{
   
   df = quick.df(b=1:5,c=1:5)  
   df
   
   library(rbenchmark)
-}
+}}

@@ -18,7 +18,7 @@
   So far just attempts to convert date and date.times
 }
 
-\examples{
+\examples{\dontrun{
   df = data.frame(text=c("c","b","a"),mixed=as.factor(c("a",NA,56)),
     dates = c("1.1.1975","1.1.2010","8.3.1999"),
     date.times = c("1.1.1975 00:10","2010-5-5 12pm","4:30:15"),
@@ -29,4 +29,4 @@
   df =automatic.type.conversion(df,quiet=FALSE)
   d = df$dates
   d[1]<"1.1.2012"
-}
+}}

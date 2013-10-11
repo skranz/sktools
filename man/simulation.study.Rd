@@ -63,7 +63,7 @@
   different parameter combinations
 }
 
-\examples{
+\examples{\dontrun{
   
   # A function that simulates demand
   demand.sim = function(beta0=100,beta1=-1,sigma.eps=0.4,T=200, p.min=0, p.max= (-beta0/beta1)) {  
@@ -113,4 +113,4 @@
   qplot(y=est.bias,x=T,data=agg,geom="line",group=sigma.eps, color=as.factor(sigma.eps), ylab="Estimated bias",size=I(1.2))
   
   ret 
-}
+}}

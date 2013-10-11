@@ -21,7 +21,7 @@
   description of the Wu-Hausman-Test
 }
 
-\examples{
+\examples{\dontrun{
   library(sktools)  
   # Ice cream model
   T = 100
@@ -99,4 +99,4 @@
   #ks.test(sim$p.value,"punif",min=0,max=1)
   
   
-}
+}}

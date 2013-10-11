@@ -41,7 +41,7 @@
   the function is just a simple wrapper to mapply.
 }
 
-\examples{
+\examples{\dontrun{
   # Compute some values of a linear and quadratic function
   f = function(a,b,c) {
     x = seq(0,1,length=5)
@@ -54,4 +54,4 @@
   library(ggplot2)
   qplot(x=x,y=quad,data=ret, facets= a ~ b, color=as.factor(c),geom="line")
   
-}
+}}

@@ -9,6 +9,6 @@
   Substitute some pattern by a list of alternatives
 }
 
-\examples{
+\examples{\dontrun{
   subst.expr("mean.ATTR=mean(ATTR)",subst=list(ATTR=c("hp","li")))
-}
+}}

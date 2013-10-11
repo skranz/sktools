@@ -18,7 +18,7 @@
   standard errors are then computed using the delta method.
 }
 
-\examples{
+\examples{\dontrun{
   get.coef.and.se(m1,trans.coef = list(ratio="t1/t2",prod="t1*t2",inv_t1="1/t1"))
   
   coef(m1)["(Intercept)"]
@@ -33,4 +33,4 @@
   # The next example calls the default method by extracting the
   # vector of estimates and covariance matrix explicitly
   deltaMethod(coef(m1), "t1/t2", vcov.=vcov(m1))
-}
+}}

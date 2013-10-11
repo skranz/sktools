@@ -8,6 +8,6 @@
   Set specified names for x and return the named object
 }
 
-\examples{
+\examples{\dontrun{
   named(1:3,c("A","B","C"))
-}
+}}
