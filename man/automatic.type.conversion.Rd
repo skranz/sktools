@@ -6,7 +6,7 @@
     quiet = FALSE, name = "", cols = NULL,
     date.class = "POSIX.ct", date.time.class = "POSIX.ct",
     factorsAsStrings = FALSE, stringsAsFactors = FALSE,
-    ...)
+    thousand.sep = NULL, ...)
 }
 \arguments{
   \item{x}{a vector or data frame that shall be converted}
