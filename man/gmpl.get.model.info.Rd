@@ -1,17 +1,16 @@
 \name{gmpl.get.model.info}
 \alias{gmpl.get.model.info}
-\title{Gets a list with sets, variables and parameters
-of a GMPL model in the file mod.file}
+\title{Internal function that gets a list with sets, variables and parameters
+of a GMPL model}
 \usage{
   gmpl.get.model.info(mod.file)
-
-  gmpl.get.model.info(mod.file)
+}
+\arguments{
+  \item{mod.file}{path of the .mod file in which the gmpl
+  model is specified}
 }
 \description{
-  Gets a list with sets, variables and parameters of a GMPL
-  model in the file mod.file
-
-  Gets a list with sets, variables and parameters of a GMPL
-  model in the file mod.file
+  Internal function that gets a list with sets, variables
+  and parameters of a GMPL model
 }
 

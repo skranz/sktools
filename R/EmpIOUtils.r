@@ -90,7 +90,7 @@ examples.run.scenarios = function() {
 #' @param LAPPLY a function that has the same behavior as lapply. One can use an different function, e.g. in order to parallelize the execution when running a simulation on a computer cluster.
 #' @return returns a data.frame that combines the results of all calls to fun and adds the corresponding parameter combinantion and an index for the actual replication. The data.frame can be conviniently analysed graphically, e.g. with ggplot2
 #' @export
-simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = interactive(), add.run.id=TRUE, colnames=NULL,same.seeds.each.par = TRUE,  seeds = floor(runif(repl,0,.Machine$integer.max)),LAPPLY = lapply) {
+simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = interactive(), add.run.id=TRUE, colnames=NULL,same.seeds.each.par = TRUE,  seeds = floor(runif(repl,0,.Machine$integer.max)),LAPPLY = lapply ) {
   args = list(...)
   
   restore.point("simulation.study")
@@ -181,6 +181,40 @@ simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = inter
   return(as.data.frame(all.df))
   
 }
+
+
+simulation.study.with.action.fun = function(fun, par=NULL, repl=1,..., show.progress.bar = interactive(), add.run.id=TRUE, colnames=NULL,same.seeds.each.par = TRUE,  seeds = floor(runif(repl,0,.Machine$integer.max)),LAPPLY = lapply, action.fun=NULL, action.freq=1 ) {
+  args = list(...)
+  
+  restore.point("simulation.study")
+  
+  repl.chunk = action.freq
+  chunks = ceiling(repl / repl.chunk)
+  
+  if (show.progress.bar)
+    show.progress.bar = require(R.utils,quietly=TRUE,warn.conflicts=FALSE)
+  
+  if (show.progress.bar)
+    pb <- txtProgressBar(min = 1, max = chunks, style = 3)
+  
+  
+  sim = NULL
+  for (chunk in 1:repl) {
+    if (show.progress.bar)
+      setTxtProgressBar(pb, chunk)
+    
+    r.start = (chunks-1) * repl.chunk +1
+    r.end = min(r.start + repl.chunk-1, repl)
+    
+    sim.act = simulation.study(fun,par, repl=repl.chunk, show.progress.bar = FALSE, add.run.id, colnames,same.seeds.each.par,  seeds = seeds[r.start:r.end],LAPPLY,...)
+    sim = rbind(sim, sim.act)
+    action.fun(sim, ...)
+  }
+  if (show.progress.bar)  
+    close(pb)
+  
+}
+
 
 cbind.list.to.df = function(...) {
   df = do.call("c",list(...))

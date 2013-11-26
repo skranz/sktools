@@ -1,23 +1,45 @@
-#source("D:/libraries/rampl/rgmpl.r")
+#source("c:/libraries/sktools/sktools/R/examples2Rd.r")
+#add.examples2package("rampl",package.path="D:/libraries/rampl")
+rampl.glob <- new.env()
+#.onLoad <- function(libname, pkgname) {
+#  init.rampl()  
+#}
 
+init.rampl = function() {
+  rampl.glob$DISPLAY.LOG = NULL
+}
 
-# Notes:
-# 1. Don't add a line "end;" in a model or data file
-# 2. Don't load model or data within the run file
+get.ampl.local.options = function() {
+  list(
+    "PATH" = c("option solver pathampl;","option presolve 0;")
+  )
+}
 
+get.ampl.neos.options = function() {
+  list(
+    "PATH" = c("option presolve 0;")
+    # KNITRO OPTIONS FROM EXAMPLE OF CHE-LIN SU                         
+    ,"KNITRO" = c("option knitro_options 'alg=1 outlev=3 opttol=1.0e-6 feastol=1.0e-6'")  
+  )
+}
 
-AMPL.LOCAL.OPTIONS = list(
-  "PATH" = c("option solver pathampl;","option presolve 0;")
-)
+#' Generates an AMPL data file
+#' 
+#' Generates a AMPL data file for the model specified in dat.file
+#' sets and param are lists that contain the 
+#' values of the sets and parameters that
+#' are specified in the GMPL model
+#' @param sets a list with the sets used by the gmpl model
+#' @param param a list with the parameters used by the gmpl model
+#' @param mod.file path of the .mod file in which the gmpl model is specified
+#' @param dat.file path of the .dat file in which the data shall be written
+#' @export
+ampl.make.dat.file =  function(...) {
+  gmpl.make.dat.file(...)
+}
 
-AMPL.NEOS.OPTIONS = list(
-  "PATH" = c("option presolve 0;")
-  # KNITRO OPTIONS FROM EXAMPLE OF CHE-LIN SU                         
-  ,"KNITRO" = c("option knitro_options 'alg=1 outlev=3 opttol=1.0e-6 feastol=1.0e-6'")  
-)
-
-ampl.make.dat.file =  function(...) {gmpl.make.dat.file(...)}
-
+#' Returns a list of availble solver for AMPL on NEOS
+#' @export
 neos.ampl.solvers = function() {
   library(rneos)  
   txt = NlistAllSolvers(convert = TRUE, nc = CreateNeosComm())@ans
@@ -37,10 +59,18 @@ examples.neos.ampl.solvers = function() {
   neos.ampl.solvers()
 }
 
+#' Solves an AMPL model remotely using the NEOS Server
+#' 
+#' @param name the model name
+#' @param category category of the optimization problem, call neos.ampl.solvers() for an overview
+#' @param solver desired solver, call neos.ampl.solvers() for a list
+#' @param path path in which mod.file, dat.file and run.file can be found
+#' @param wait default=TRUE shall R wait until NEOS returns the solution (may take some time)
+#' @export
 ampl.run.neos = function(
   name="",category="cp", solver="PATH",path=getwd(), wait = TRUE,
-  model.file=paste(path,"/",name,".mod",sep=""),
-  data.file=paste(path,"/",name,".dat",sep=""),
+  mod.file=paste(path,"/",name,".mod",sep=""),
+  dat.file=paste(path,"/",name,".dat",sep=""),
   run.file=paste(path,"/",name,".run",sep=""),
   log.file = paste(path,"/log_",name,"_",solver,".txt",sep=""))
 {
@@ -52,8 +82,8 @@ ampl.run.neos = function(
   #NlistAllSolvers(convert = TRUE, nc = CreateNeosComm())
   
   ## import of file contents
-  modc <- paste(paste(readLines(model.file), collapse = "\n"), "\n")
-  datc <- paste(paste(readLines(data.file), collapse = "\n"), "\n")
+  modc <- paste(paste(readLines(mod.file), collapse = "\n"), "\n")
+  datc <- paste(paste(readLines(dat.file), collapse = "\n"), "\n")
   runc <- paste(paste(readLines(run.file), collapse = "\n"), "\n")
 
   #
@@ -110,12 +140,17 @@ ampl.run.neos = function(
   return (job)
 }
 
+#' Generate a default run file for a given AMPL model
+#' 
+#' @param neos if true a run file for the neos server is created, otherwise for a local call to AMPL
+#' @param path path in which mod.file, dat.file and run.file can be found
+#' @export
 ampl.make.run.file = function(name,run.name=name,options="",
                          var.out = NULL,neos=FALSE,path=getwd(), 
                          mod.file=paste(path,"/",name,".mod",sep=""),
                          run.file=paste(path,"/",run.name,".run",sep=""),
                          dat.file=paste(path,"/",run.name,".dat",sep="")) {
-  
+ restore.point("ampl.make.run.file")  
  str = paste(options,"\n\n",collapse="\n")
  if (!neos) {
     str = paste(str,
@@ -211,8 +246,12 @@ extract.var.from.AMPL.out = function(str) {
 }
 
 
-
-ampl.run.local = function(name="",path=getwd(),                        run.file=paste(path,"/",name,".run",sep=""), display=TRUE) {
+#' Solves an AMPL model using a local installation of AMPL
+#' 
+#' You need to have a local AMPL installation with the corresponding solvers. It is assumed that a call to ampl finds the executable file, i.e. in Windows you have to add the AMPL directory to the system PATH variable
+ampl.run.local = function(name="",path=getwd(), run.file=paste(path,"/",name,".run",sep=""), display=TRUE) {
+  restore.point("ampl.run.local")
+  
   command = paste("ampl",' "',run.file,'"',sep="") 
   
 	ret = system(command,intern = TRUE,wait=TRUE,ignore.stdout = FALSE, ignore.stderr = FALSE, show.output.on.console=TRUE, invisible=FALSE)
@@ -222,23 +261,89 @@ ampl.run.local = function(name="",path=getwd(),                        run.file=
   extract.all.var.from.AMPL.out(ret)
 }
 
-.DISPLAY.LOG = NULL
+
+examples.ampl.run.local = function() {
+  # Model of power plant investments and dispatch included in package
+  mod.file = paste(.path.package(package = "rampl"),"/data/cournot.mod",sep="")
+  dat.file = paste(.path.package(package = "rampl"),"/data/cournot.dat",sep="")
+  run.file = paste(getwd(),"/cournot.run",sep="")
+  
+  ampl.make.run.file(name="cournot", options=c("option solver minos;"), mod.file=mod.file,dat.file=dat.file,run.file=run.file)
+  ret = ampl.run.local(name="cournot", display=TRUE, run.file=run.file)
+  ret
+  
+  # Solve for different parameter values
+  n = 2
+  sets = list(N=1:n)
+  param = list(a=1,b=1,c=c(0.1,0.1))
+  
+  dat.file = paste(getwd(),"/cournot.dat",sep="")
+  run.file = paste(getwd(),"/cournot.run",sep="")
+  ampl.make.run.file(name="cournot", options=c("option solver minos;"), mod.file=mod.file,dat.file=dat.file,run.file=run.file)
+  
+  solve.cournot = function(c1=0,c2=0) {
+    param$c = c(c1,c2)
+    ampl.make.dat.file(mod.file=mod.file,dat.file=dat.file,sets = sets, param=param)
+    ret = ampl.run.local(name="cournot", display=FALSE, run.file=run.file)
+    t(ret$q)
+  }
+  solve.cournot(c1=0.1,c2=0)
+  library(sktools)
+  ret = run.scenarios(solve.cournot, par=list(c1=seq(0,1,length=10),c2=0))
+  colnames(ret)=c("scen.id","c1","c2","q1","q2")
+  ret
+}
+
+
+examples.ampl.run.neos = function() {
+  # Model of power plant investments and dispatch included in package
+  mod.file = paste(.path.package(package = "rampl"),"/data/cournot.mod",sep="")
+  dat.file = paste(.path.package(package = "rampl"),"/data/cournot.dat",sep="")
+  run.file = paste(getwd(),"/cournot.run",sep="")
+  ampl.make.run.file(name="cournot", neos=TRUE, mod.file=mod.file,dat.file=dat.file,run.file=run.file, options=c(""))
+  ret = ampl.run.neos(name="cournot", category="nco", solver="MINOS", mod.file=mod.file, dat.file=dat.file, run.file=run.file)
+  ret
+  
+  # Solve for different parameter values
+  n = 2
+  sets = list(N=1:n)
+  param = list(a=1,b=1,c=c(0.1,0.1))
+  
+  dat.file = paste(getwd(),"/cournot.dat",sep="")
+  run.file = paste(getwd(),"/cournot.run",sep="")
+  ampl.make.run.file(name="cournot", options=c("option solver minos;"), mod.file=mod.file,dat.file=dat.file,run.file=run.file)
+  
+  solve.cournot = function(c1=0,c2=0) {
+    param$c = c(c1,c2)
+    ampl.make.dat.file(mod.file=mod.file,dat.file=dat.file,sets = sets, param=param)
+    ret = ampl.run.local(name="cournot", display=FALSE, run.file=run.file)
+    t(ret$q)
+  }
+  solve.cournot(c1=0.1,c2=0)
+  library(sktools)
+  ret = run.scenarios(solve.cournot, par=list(c1=seq(0,1,length=10),c2=0))
+  colnames(ret)=c("scen.id","c1","c2","q1","q2")
+  ret
+  
+}
+
+
 display.start.log = function(log.file,append=FALSE) {
   if (append) {
-    .DISPLAY.LOG = file(log.file,open="at")
+    rampl.glob$DISPLAY.LOG = file(log.file,open="at")
   } else {
-    .DISPLAY.LOG = file(log.file,open="wt")
+    rampl.glob$DISPLAY.LOG = file(log.file,open="wt")
   }
 }
 display.stop.log = function() {
-  .DISPLAY.LOG = NULL
+  rampl.glob$DISPLAY.LOG = NULL
 }
 
 # Display stuff in a convenient form
 display = function(...,collapse="\n",sep="") {
   str = paste("\n",paste(...,collapse=collapse,sep=sep),"\n",sep="")
-  if (!is.null(.DISPLAY.LOG)) {
-    write(str,.DISPLAY.LOG,append=TRUE)
+  if (!is.null(rampl.glob$DISPLAY.LOG)) {
+    write(str,rampl.glob$DISPLAY.LOG,append=TRUE)
   }
   invisible(message(str))
   #print(str,quote=FALSE)

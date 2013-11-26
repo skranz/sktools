@@ -1,39 +1,20 @@
 # Hilfsfunktionen um GMPL Modelle in R zu lösen
 #
-# Autor: Sebastian Kranz (skranz@uni-bonn.de)
+# Autor: Sebastian Kranz (skranz@uni-ulm.de)
 #
-# Version vom 07.12.2011
-
-library(glpkAPI)
-library(stringr)
+# Version vom 12.11.2012
 
 
-#' Paste together columns of a matrix or data.frame
-#' @export
-paste.matrix.cols = function(mat,cols=1:NCOL(mat),...) {
-  if (NROW(cols)==2) {
-    return(paste(mat[,cols[1]],mat[,cols[2]],...))
-  } else if (NROW(cols)==3) {
-    return(paste(mat[,cols[1]],mat[,cols[2]],mat[,cols[3]],...))
-  } else {
-    code = paste("mat[,",cols,"]",collapse=",")
-    code = paste("paste(",code,",...)",sep="")
-    return(eval(parse(text=code)))
-  }
-}
-
-
-ADAPT.SOL = FALSE
-
-#' Gets a list with sets, variables and parameters
-#' of a GMPL model in the file mod.file
+#' Internal function that gets a list with sets, variables and parameters
+#' of a GMPL model
+#' @param mod.file path of the .mod file in which the gmpl model is specified
 #' @export
 gmpl.get.model.info = function(mod.file) {
-  
-  restore.point("gmpl.get.model.info")
+  # Gets a list with sets, variables and parameters
+  # of a GMPL model in the file mod.file
   
   require(stringr)
-  str = readLines(mod.file)
+  str = readLines(mod.file, warn=FALSE)
   # Remove whitespaces from left or right 
   str = str_trim(str)
   
@@ -43,27 +24,12 @@ gmpl.get.model.info = function(mod.file) {
   end.name = str_locate(txt,"[{;=<> ]")[,1]
   sets.name = str_sub(txt,1,end.name-1)
   
-  extract.sets = function(txt) {
-    brace.start = str_locate(txt,fixed("{"))[,1]
-    brace.end = str_locate(txt,fixed("}"))[,1]
-    in.brace = str_sub(txt,brace.start+1,brace.end-1)
-    my.sets = str_split(in.brace,fixed(','))
-    my.sets = lapply(my.sets,str_trim)
-    my.sets = lapply(my.sets, function(set) {
-      if (is.na(set[1]))
-        return(set)
-      set = str_trim(set)
-      in.pos = str_locate(set,fixed(" in "))[,2]
-      rows = which(!is.na(in.pos))
-      if (length(rows)>0)
-        set[rows] = substring(set[rows],in.pos[rows]+1)                
-      return(set)
-    })
-    return(my.sets)
-  }
-  
   # Find sets for each set
-  sets.sets = extract.sets(txt)
+  brace.start = str_locate(txt,fixed("{"))[,1]
+  brace.end = str_locate(txt,fixed("}"))[,1]
+  in.brace = str_sub(txt,brace.start+1,brace.end-1)
+  sets.sets = str_split(in.brace,fixed(','))
+  sets.sets = lapply(sets.sets,str_trim)
   names(sets.sets)=sets.name
 
   
@@ -74,7 +40,13 @@ gmpl.get.model.info = function(mod.file) {
   var.name = str_sub(txt,1,end.name-1)
   
   # Find sets for each variable
-  var.sets = extract.sets(txt)
+  equal.start = str_locate(txt,fixed("="))[,1]
+  brace.start = str_locate(txt,fixed("{"))[,1]
+  brace.end = str_locate(txt,fixed("}"))[,1]
+  in.brace = str_sub(txt,brace.start+1,brace.end-1)
+  var.sets = str_split(in.brace,fixed(','))
+  var.sets = lapply(var.sets,str_trim)
+  var.sets[!is.na(equal.start) & equal.start<brace.start] = NA 
   names(var.sets)=var.name
   
   # Find parameters
@@ -84,19 +56,17 @@ gmpl.get.model.info = function(mod.file) {
   param.name = str_sub(txt,1,end.name-1)
   
   # Find sets for each parameter
-  param.sets = extract.sets(txt)
+  equal.start = str_locate(txt,fixed("="))[,1]
+  brace.start = str_locate(txt,fixed("{"))[,1]
+  brace.end = str_locate(txt,fixed("}"))[,1]
+  in.brace = str_sub(txt,brace.start+1,brace.end-1)
+  param.sets = str_split(in.brace,fixed(','))
+  param.sets = lapply(param.sets,str_trim)
+  param.sets[!is.na(equal.start) & equal.start<brace.start] = NA
   names(param.sets)=param.name
   
-  # Extract those parameters that are defined to be equal to some value
-  comment.start = str_locate(txt,fixed("#"))[,1]
-  comment.start[is.na(comment.start)] = 1000000  
-  param.defined = str_detect(substring(txt,1,comment.start),fixed("="))
-  
-  
-  return(list(sets=sets.name,sets.sets = sets.sets,
-              var=var.name,var.sets=var.sets,
-              param=param.name,param.sets=param.sets,
-              param.defined=param.defined))
+  return(list(sets=sets.name,sets.sets = sets.sets,var=var.name,var.sets=var.sets,
+              param=param.name,param.sets=param.sets))
 }  
 
 #' Generates a GMPL data file
@@ -105,27 +75,25 @@ gmpl.get.model.info = function(mod.file) {
 #' sets and param are lists that contain the 
 #' values of the sets and parameters that
 #' are specified in the GMPL model
+#' @param sets a list with the sets used by the gmpl model
+#' @param param a list with the parameters used by the gmpl model
+#' @param mod.file path of the .mod file in which the gmpl model is specified
+#' @param dat.file path of the .dat file in which the data shall be written
 #' @export
-gmpl.make.dat.file =  function(sets=NULL,param=NULL,mod.file,dat.file=NULL) {
-   
-  restore.point("gmpl.make.dat.file")
-  
+gmpl.make.dat.file =  function(sets=NULL,param=NULL,mod.file,dat.file) {  
   mi = gmpl.get.model.info(mod.file)
   
-  mi$param = mi$param[!mi$param.defined]
-  mi$param.sets = mi$param.sets[!mi$param.defined]
-  
   if (!setequal(names(sets),mi$sets)) {
-    print("Error: Model file specifies the following sets:")
+    message("Error: Model file specifies the following sets:")
     print(mi$sets)
-    print("but you specified now the following sets:")
+    message("but you specified now the following sets:")
     print(names(sets))
     stop()
   }
   if (!setequal(names(param),mi$param)) {
-    print("Error: Model file specifies the following parameters:")
+    message("Error: Model file specifies the following parameters:")
     print(mi$param)
-    print("but you specified now the following parameters:")
+    message("but you specified now the following parameters:")
     print(names(param))
     stop()
   }
@@ -188,14 +156,6 @@ gmpl.make.dat.file =  function(sets=NULL,param=NULL,mod.file,dat.file=NULL) {
       p = param[[i]]
       pn = names(param)[[i]]
       pset = sets[mi$param.sets[[pn]]]
-      
-      is.grid = FALSE
-      #restore.point("test")
-      #if (pn=="q")
-      #  stop()
-      
-      if (is.data.frame(p))
-        p = as.matrix(p)
    
       if (is.na(mi$param.sets[[pn]])[1]) {
          if (length(p)>1) {
@@ -206,25 +166,18 @@ gmpl.make.dat.file =  function(sets=NULL,param=NULL,mod.file,dat.file=NULL) {
           stop(paste("Error: Parameter ",pn," is defined over set ", paste(names(pset),collapse=" "), " and should have ", length(pset[[1]]), " elements, but the argument has ", length(p), "elements"))
         }
       } else if (length(pset)==2) {
-        if (!(is.matrix(p) | is.data.frame(p))) {
+        if (!is.matrix(p)) {
           stop(paste("Error: Parameter ",pn," is defined over sets ", paste(names(pset),collapse=" "), " and should be a ",length(pset[[1]]),"x",length(pset[[2]]), " matrix, but you did not provide a matrix."))          
         }
-        if (NCOL(p)==3 & NROW(p) == length(pset[[1]]) * length(pset[[2]])) {
-          is.grid=TRUE
-        } else {  
-          if (NROW(p)!=length(pset[[1]]) | NCOL(p)!=length(pset[[2]])) {
-            stop(paste("Error: Parameter ",pn," is defined over sets ", paste(names(pset),collapse=" "), " and should be a ",length(pset[[1]]),"x",length(pset[[2]]), " matrix, but you provided a ",NROW(p), "x", NCOL(p), " matrix."))          
-          }
+        if (NROW(p)!=length(pset[[1]]) | NCOL(p)!=length(pset[[2]])) {
+          stop(paste("Error: Parameter ",pn," is defined over sets ", paste(names(pset),collapse=" "), " and should be a ",length(pset[[1]]),"x",length(pset[[2]]), " matrix, but you provided a ",NROW(p), "x", NCOL(p), " matrix."))          
         }
-      } else if (length(pset)>=3) {
-        if (NCOL(p)!=length(pset)+1) {
-          stop(paste("Error: Parameter ",pn," is defined over the sets: ", paste(names(pset),collapse=","), ". You must provide a grid with ", length(pset)," index columns and one value column."))
-        }
-        is.grid = TRUE
+      } else if (length(pset>=3)) {
+        stop(paste("Error: Parameter ",pn," is defined over more than 2 sets: ", names(pset), ". Unfortunately, this function works so far only for at most two dimensional parameters."))          
       }
 
       # A matrix
-      if (is.matrix(p) & (!is.grid)) {
+      if (is.matrix(p)) {
         tstr = apply(p,1,function (row) paste(row,collapse=" "))
         rowset = pset[[1]]
         colset = pset[[2]]
@@ -234,13 +187,6 @@ gmpl.make.dat.file =  function(sets=NULL,param=NULL,mod.file,dat.file=NULL) {
         
         str[i] = tstr  
       # A parameter defined over a single set
-      } else if (is.grid) {
-        id.grid = p[,-NCOL(p)]
-        id.txt = paste.matrix.cols(id.grid,sep=",")
-        row.txt = paste("[",id.txt,"]",p[,NCOL(p)])
-        
-        str[i] = mypaste("  param ",pn, " := ", paste(row.txt,collapse=" "),";\n")        
-        
       } else if (!is.na(mi$param.sets[[pn]])[1]) {        
         str[i] = mypaste("  param ",pn, " := ", mypaste("[",pset[[1]],"] ",p),";\n")        
       # A single number
@@ -258,28 +204,48 @@ gmpl.make.dat.file =  function(sets=NULL,param=NULL,mod.file,dat.file=NULL) {
 
   if (!is.null(dat.file)) {
     writeLines(txt,dat.file)
-  } else {
-    return(txt)
   }
+  #return(txt)
 }
 
-
+#' Load a GMPL model and data and generate a GLPK object
+#' @export
 gmpl.load.problem = function(mod.file,dat.file) {
-  require(glpk)
-  lp <- lpx_read_model(mod.file,dat.file)
+  require(glpkAPI)
+  wk  = mplAllocWkspGLPK()
+  mplReadModelGLPK(wk,mod.file,skip=0)
+  mplReadDataGLPK(wk,dat.file)
+  mplGenerateGLPK(wk, fname = NULL)
+  
+  lp <- initProbGLPK()
+  mplBuildProbGLPK(wk, lp)
+  mplFreeWkspGLPK(wk)
   lp
 }
 
-gmpl.solve = function(mod.file=NULL,dat.file=NULL,lp=NULL,
-                      delete.lp = is.null(lp),adapt.sol=ADAPT.SOL) {
-  # Solves a GMPL model with a given dat.file
-  # and model.file
+#' Solve a GMPL problem using glpkAPI
+#' @param mod.file path of the .mod file in which the gmpl model is specified
+#' @param dat.file path of the .dat file in which the gmpl data is specified. If NULL generate a new .dat file from the given sets and param with the same name as the model file
+#' @param sets a list with the sets used by the gmpl model. Needed if no dat.file specified
+#' @param param a list with the parameters used by the gmpl model. Needed if no dat.file specified
+#' @param lp optional a link to the GLPK problem generated by gmpl.load.problem
+#' @param delete.lp default = TRUE if lp is given, shall it be removed from memory after it has been solved?
+#' @param adapt.sol default = TRUE shall the solution be returned in a more convenient form
+#' @export 
+gmpl.solve = function(mod.file=NULL,dat.file=NULL,sets=NULL, param=NULL,lp=NULL,delete.lp = is.null(lp),adapt.sol=TRUE) {
+  # Generate a dat.file
+  if (is.null(dat.file)) {
+    dat.file = paste(substring(mod.file,1,nchar(mod.file)-4),".dat",sep="")
+    message("Generate dat.file: ", dat.file)
+    gmpl.make.dat.file(sets=sets,param=param,mod.file=mod.file,dat.file=dat.file)
+  }
+  
   
   if (is.null(lp)) {
-    print("Load problem...")
+    message("Load problem...")
     lp = gmpl.load.problem(mod.file,dat.file)
   }
-  print("Solve problem...")
+  message("Solve problem...")
 
   res = glpk.solve(lp,delete.lp)
   
@@ -288,42 +254,93 @@ gmpl.solve = function(mod.file=NULL,dat.file=NULL,lp=NULL,
   }
   return(res)
 }
+
+
+examples.gmpl.solve = examples.gmpl.make.dat.file = function() {
   
+  # Model of power plant investments and dispatch included in package
+  mod.file = paste(.path.package(package = "rgmpl"),"/data/power.mod",sep="")
+    
+  # Name of dat file, will be generated locally
+  dat.file = "power.dat"
+  
+  # Example data
+  
+  # Sets
+  PLANTS = c("coal","gas")
+  PERIODS = 1:4
+  sets = list(PLANTS=PLANTS,PERIODS=PERIODS)
+  
+  # Parameters
+  fc = c(12,6)  # fixed cost 
+  vc = c(18,30) # variable cost
+  load = c(30,50,25,20) # electricity demand
+  T = length(PERIODS)
+  param = list(vc=vc,fc=fc,load=load,T=T)
+  
+  # Generate a GMPL .dat file
+  gmpl.make.dat.file(sets=sets,param=param,mod.file=mod.file, dat.file=dat.file)
+  
+  # Solve the model
+  res = gmpl.solve(mod.file=mod.file,dat.file=dat.file, delete.lp =FALSE)
+  res
+  
+  # Show production levels graphically
+  library(ggplot2)
+  qplot(data=res$sol$q, x=PERIODS,y=q,fill=PLANTS,geom="bar",stats="identity", xlab="Period",ylab="Production")
+  
+}
+#' Solve a GLPK linear problem
+#' 
+#' @param lp a GLPK problem generated e.g. by a call to gmpl.load.problem
+#' @param delete.lp default = TRUE shall the problem lp be removed from memory after it has been solved?
+#' @export
 glpk.solve = function(lp=NULL, delete.lp = TRUE) {
   # solve model with simplex algorithm
-  require(glpk)
+  #require(glpkAPI)
+  restore.point("glpk.solve")
   
-  
-  print("Solve model...")
-  code=lpx_simplex(lp)
-  print("Retrieve solution (can be slow...)")
+  message("Solve model...")
+  code=solveSimplexGLPK(lp)
+  message("Retrieve solution")
   # Retrieve Solution
-  nc = lpx_get_num_cols(lp)
-  nr = lpx_get_num_rows(lp)
+  nc = getNumColsGLPK(lp)
+  nr = getNumRowsGLPK(lp)
   
-  val = lpx_get_obj_val(lp)
+  #nc = glp_get_num_cols(lp)
+  #nr = glp_get_num_rows(lp)
   
-  sol           = mapply(lpx_get_col_prim,j=1:nc,MoreArgs=list(lp=lp))
-  sol.name      = mapply(lpx_get_col_name,j=1:nc,MoreArgs=list(lp=lp))
+  #val = glp_get_obj_val(lp)
+  val = getObjValGLPK(lp)
+  #sol           = mapply(getColPrimGLPK,j=1:nc,MoreArgs=list(lp=lp))
+  sol = getColsPrimGLPK(lp)
+  sol.name      = mapply(getColNameGLPK,j=1:nc,MoreArgs=list(lp=lp))
+  
   names(sol)    = sol.name
   
-  shadow.prices = mapply(lpx_get_row_dual,i=1:nr,MoreArgs=list(lp=lp))
-  constr.name   = mapply(lpx_get_row_name,i=1:nr,MoreArgs=list(lp=lp))
-  names(shadow.prices) = constr.name
+  duals         = mapply(getRowDualGLPK,i=1:nr,MoreArgs=list(lp=lp))
+  constr.name   = mapply(getRowNameGLPK,i=1:nr,MoreArgs=list(lp=lp))
+  names(duals) = constr.name
   
   # Delete the linear program in order to free memory
   if (delete.lp) {
-    lpx_delete_prob(lp)
+    delProbGLPK(lp)
+    #glp_delete_prob(lp)
   }
   
-  return(list(code=code,val=val,sol=sol,shadow.prices=shadow.prices))
+  return(list(code=code,val=val,sol=sol,duals=duals))
 }
 
+# Internal function write solution in a nicer form
 gmpl.adapt.sol = function(sol,mod.file=NULL,mi=NULL) {
+  #restore.point("adapt.sol")
+  
   lab = names(sol)
-  left.bracket.pos = str_locate(lab,fixed("["))[,1]  
-  var = str_sub(lab,start=1,end=left.bracket.pos-1)
-  arg.str = str_sub(lab,start=left.bracket.pos+1,end=-2)
+  left.bracket.pos = str_locate(lab,fixed("["))[,1]-1
+  na.rows = is.na(left.bracket.pos)
+  left.bracket.pos[is.na(left.bracket.pos)] = nchar(lab[na.rows])
+  var = str_sub(lab,start=1,end=left.bracket.pos)
+  arg.str = str_sub(lab,start=left.bracket.pos+2,end=-2)
   
   if (!is.null(mod.file)) {
     mi = gmpl.get.model.info(mod.file)
@@ -332,7 +349,14 @@ gmpl.adapt.sol = function(sol,mod.file=NULL,mi=NULL) {
   ret = list()
   for (vn in unique(var)) {
     rows = which(var == vn)
+    # A scalar variable
+    if (nchar(arg.str[rows[1]]) == 0) {
+      ret[[vn]] = as.numeric(sol[vn])
+      next
+    }  
     num.comma = NROW(str_locate_all(arg.str[rows[1]],fixed(","))[[1]])
+  
+    
     df = as.data.frame(matrix(NA,NROW(rows),num.comma+2))
     act.arg.str = arg.str[rows]
     if (num.comma>0) {
@@ -349,7 +373,8 @@ gmpl.adapt.sol = function(sol,mod.file=NULL,mi=NULL) {
     } else {
       colnames(df)=c(paste("arg",1:(num.comma+1),sep=""),vn)
     }
-    if (NROW(df>1) & NCOL(df)>1) {
+    
+    if (NROW(df)>1 & NCOL(df)>1) {
       for (i in 1:NCOL(df)) {
         if (is.character(df[1,i]) & !is.na(suppressWarnings(as.numeric(df[1,i]))) ) {
           num.col= suppressWarnings(as.numeric(df[,i]))
@@ -358,27 +383,8 @@ gmpl.adapt.sol = function(sol,mod.file=NULL,mi=NULL) {
         }        
       }
     }
+    
     ret[[vn]]=df
   }
   return(ret)
 } 
-
-# Converts
-matrix.to.grid = function(mat,col.id.name="col.id", row.id.name="row.id",val.name="val",row.grid = NULL) 
-{
-  restore.point("matrix.to.grid")
-  
-  long = as.vector(as.matrix(mat))
-  row.id = rep(1:NROW(mat), times=NCOL(mat))
-  col.id = rep(1:NCOL(mat), each=NROW(mat))
-  
-  if (is.null(row.grid)) {
-    grid = cbind(row.id,col.id,long)
-    colnames(grid) = c(row.id.name,col.id.name,val.name)
-  } else {
-    row.grid = as.matrix(row.grid)
-    grid = cbind(row.grid[row.id,],col.id,long)
-    colnames(grid) = c(colnames(row.grid),col.id.name,val.name)
-  }
-  return(grid)  
-}

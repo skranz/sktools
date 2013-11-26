@@ -12,7 +12,8 @@ plot.with.legend = function(plot.expr,legend, fill, width = 5,bty="n",...) {
   xylim = par("usr")
   x = xylim[2]
   y = xylim[4]
-  legend(x=x,y=y,legend=legend,fill=fill,bty=bty,xpd=TRUE,...)
+  if (!is.null(legend))
+    legend(x=x,y=y,legend=legend,fill=fill,bty=bty,xpd=TRUE,...)
   par(org.par)
 }
 
