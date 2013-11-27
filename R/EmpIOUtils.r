@@ -163,18 +163,9 @@ simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = inter
   }
   
   if (!is.null(colnames)) {
-    
-    if (!is.null(par)) {
-      num.key.cols = NCOL(par.grid)+add.run.id
-    } else {
-      num.key.cols = 0+add.run.id      
-    }
-    num.val.cols = NCOL(all.df)-num.key.cols
-    if (num.val.cols != length(colnames)) {
-      warning(paste("Function fun returns ", num.val.cols, " columns but ", length(colnames), " colnames have been specified."))
-    } else {
-      colnames(all.df)[(num.key.cols+1):(num.key.cols+num.val.cols)]=colnames
-    }
+    nc = NCOL(all.df); ncn = length(colnames)
+    cols = (nc-ncn+1):nc
+    colnames(all.df)[cols]=colnames
   }
   
   
