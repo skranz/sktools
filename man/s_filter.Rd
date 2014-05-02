@@ -1,0 +1,40 @@
+\name{s_filter}
+\alias{s_filter}
+\title{Modified version of dplyr's filter that uses string arguments}
+\usage{
+  s_filter(.data, ...)
+}
+\description{
+  Modified version of dplyr's filter that uses string
+  arguments
+}
+
+\examples{\dontrun{
+  # Examples
+  library(dplyr)
+  
+  # Original usage of dplyr
+  mtcars %.%
+    filter(gear == 3,cyl == 8) %.%  
+    select(mpg, cyl, hp:vs)
+  
+  # Select user specified cols.
+  # Note that you can have a vector of strings
+  # or a single string separated by ',' or a mixture of both
+  cols = c("mpg","cyl, hp:vs")
+  mtcars %.%
+    filter(gear == 3,cyl == 8) %.%  
+    s_select(cols)
+  
+  # Filter using a string
+  col = "gear"
+  mtcars %.%
+    s_filter(paste0(var,"==3"), "cyl==8" ) %.%
+    select(mpg, cyl, hp:vs)
+    s_arrange("mpg")
+  
+  # group_by and summarise with strings
+  mtcars %.%
+    s_group_by("cyl") %.%  
+    s_summarise("mean(disp), max(disp)")
+}}

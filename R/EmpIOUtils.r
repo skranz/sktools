@@ -1,6 +1,28 @@
 # Author: Sebastian Kranz 
 # Some tools used in my courses
 
+#' Checks whether val is TRUE, NULL return FALSE
+#' If val is a vector vectorized over val
+#' @export
+is.true = function(val) {
+  if (length(val)==0)
+    return(FALSE)
+  val[is.na(val)] = FALSE
+  return(val)
+}
+
+
+#' Checks whether val is FALSE, NULL return FALSE
+#' If val is a vector vectorized over val
+#' @export
+is.false = function(val) {
+  if (length(val)==0)
+    return(FALSE)
+  val[is.na(val)] = TRUE  
+  return(!val)
+}
+
+
 #' A helper function to simulate different scenarios. So far the function is just a simple wrapper to mapply.
 #' @param fun a function that runs the simulation for given set of parameters and returns the results as a data.frame. The data.frame must have the same number of columns, for all possible parameter combinations, the number of rows can differ, however.
 #' @param par a list of the scalar parameters used by sim.fun. If some parameters in the list are vectors, run the simulation for every combination of parameter values.
@@ -250,6 +272,7 @@ with.random.seed = function(expr,seed=1234567890) {
   set.seed(seed)
   ret = eval(expr)
   assign(".Random.seed",old.seed,.GlobalEnv)
+  runif(1)
   return(ret)
 }
 
@@ -327,10 +350,11 @@ examples.simulation.study = function() {
 
 #' Views variable labels of a data.frame loaded with read.dta
 #' @export 
-view.stata.var = function(df,View=TRUE,print=!View) {
+view.stata.var = function(df,View=FALSE,print=!View) {
   stata.var = data.frame(colnames(df),attributes(df)$var.labels)
   colnames(stata.var) = c("name","label")
-  View(stata.var)
+  if (View)
+    View(stata.var)
   if (!print) {
     return(invisible(stata.var))
   }
@@ -640,6 +664,81 @@ add.by.col = function(dt,name,expr,by) {
   code = paste('dt[,list("',name,'"=',expr,'),keyby=',by.str,"]",sep="")
   new.dt = eval(base::parse(text=code))
   new.dt[dt,]
+}
+
+examples.s_filter = function() {
+  # Examples
+  library(dplyr)
+  
+  # Original usage of dplyr
+  mtcars %.%
+    filter(gear == 3,cyl == 8) %.%  
+    select(mpg, cyl, hp:vs)
+  
+  # Select user specified cols.
+  # Note that you can have a vector of strings
+  # or a single string separated by ',' or a mixture of both
+  cols = c("mpg","cyl, hp:vs")
+  mtcars %.%
+    filter(gear == 3,cyl == 8) %.%  
+    s_select(cols)
+  
+  # Filter using a string
+  col = "gear"
+  mtcars %.%
+    s_filter(paste0(var,"==3"), "cyl==8" ) %.%
+    select(mpg, cyl, hp:vs)
+    s_arrange("mpg")
+  
+  # group_by and summarise with strings
+  mtcars %.%
+    s_group_by("cyl") %.%  
+    s_summarise("mean(disp), max(disp)")
+}
+
+#' Modified version of dplyr's filter that uses string arguments
+#' @export
+s_filter = function(.data, ...) {
+    eval.string.dplyr(.data,"filter", ...)
+}
+
+#' Modified version of dplyr's select that uses string arguments
+#' @export
+s_select = function(.data, ...) {
+  eval.string.dplyr(.data,"select", ...)
+}
+
+#' Modified version of dplyr's arrange that uses string arguments
+#' @export
+s_arrange = function(.data, ...) {
+  eval.string.dplyr(.data,"arrange", ...)
+}
+
+#' Modified version of dplyr's arrange that uses string arguments
+#' @export
+s_mutate = function(.data, ...) {
+  eval.string.dplyr(.data,"mutate", ...)
+}
+
+#' Modified version of dplyr's summarise that uses string arguments
+#' @export
+s_summarise = function(.data, ...) {
+  eval.string.dplyr(.data,"summarise", ...)
+}
+
+#' Modified version of dplyr's group_by that uses string arguments
+#' @export
+s_group_by = function(.data, ...) {
+  eval.string.dplyr(.data,"group_by", ...)
+}
+
+#' Internal function used by s_filter, s_select etc.
+eval.string.dplyr = function(.data, .fun.name, ...) {
+  args = list(...)
+  args = unlist(args)
+  code = paste0(.fun.name,"(.data,", paste0(args, collapse=","), ")")
+  df = eval(parse(text=code,srcfile=NULL))
+  df  
 }
 
 #' Quick version of by using internally data.table
