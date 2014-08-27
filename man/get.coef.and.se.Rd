@@ -2,8 +2,8 @@
 \alias{get.coef.and.se}
 \title{Returns estimated coefficients and standard errors from a regression model. One can also specify linear or non-linear transformations of the original coefficients, standard errors are then computed using the delta method.}
 \usage{
-  get.coef.and.se(reg, trans.coef = NULL,
-    coef. = coef(reg), vcov. = vcov(reg))
+get.coef.and.se(reg, trans.coef = NULL, coef. = coef(reg),
+  vcov. = vcov(reg))
 }
 \arguments{
   \item{reg}{results of any estimation (like lm) that has
@@ -12,10 +12,10 @@
   \item{trans.coef}{a list}
 }
 \description{
-  Returns estimated coefficients and standard errors from a
-  regression model. One can also specify linear or
-  non-linear transformations of the original coefficients,
-  standard errors are then computed using the delta method.
+Returns estimated coefficients and standard errors from a
+regression model. One can also specify linear or non-linear
+transformations of the original coefficients, standard
+errors are then computed using the delta method.
 }
 
 \examples{\dontrun{

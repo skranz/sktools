@@ -2,11 +2,11 @@
 \alias{s_filter}
 \title{Modified version of dplyr's filter that uses string arguments}
 \usage{
-  s_filter(.data, ...)
+s_filter(.data, ...)
 }
 \description{
-  Modified version of dplyr's filter that uses string
-  arguments
+Modified version of dplyr's filter that uses string
+arguments
 }
 
 \examples{\dontrun{

@@ -2,10 +2,10 @@
 \alias{nc}
 \title{Creates a vector that is named by the names of its arguments}
 \usage{
-  nc(...)
+nc(...)
 }
 \description{
-  Creates a vector that is named by the names of its
-  arguments
+Creates a vector that is named by the names of its
+arguments
 }
 

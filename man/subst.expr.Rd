@@ -2,11 +2,10 @@
 \alias{subst.expr}
 \title{Substitute some pattern by a list of alternatives}
 \usage{
-  subst.expr(expr.str, subst, collapse = ",",
-    add.list = FALSE)
+subst.expr(expr.str, subst, collapse = ",", add.list = FALSE)
 }
 \description{
-  Substitute some pattern by a list of alternatives
+Substitute some pattern by a list of alternatives
 }
 
 \examples{\dontrun{

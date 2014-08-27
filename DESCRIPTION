@@ -12,5 +12,4 @@ Depends:
     data.table,
     lubridate,
     stringr,
-    R.utils,
-    glpkAPI
+    R.utils

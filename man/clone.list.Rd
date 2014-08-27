@@ -4,7 +4,7 @@
 #
 #}
 \usage{
-  clone.list(li, use.copied.ref = FALSE)
+\method{clone}{list}(li, use.copied.ref = FALSE)
 }
 \arguments{
   \item{options}{a list of options that shall be set.
@@ -74,9 +74,9 @@
   does nothing instead. #}
 }
 \value{
-  returns nothing, just called for side effects #
+returns nothing, just called for side effects #
 }
 \description{
-  #Set and retrieve global options for restore points # #
+#Set and retrieve global options for restore points # #
 }
 

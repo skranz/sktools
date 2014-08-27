@@ -2,8 +2,8 @@
 \alias{quick.by}
 \title{Quick version of by using internally data.table}
 \usage{
-  quick.by(df, by = NULL, expr, add.col = FALSE,
-    as.data.table = FALSE, keep.row.order = add.col, ...)
+quick.by(df, by = NULL, expr, add.col = FALSE, as.data.table = FALSE,
+  keep.row.order = add.col, ...)
 }
 \arguments{
   \item{df}{a data.frame that shall be aggregated /
@@ -23,14 +23,14 @@
   rows in df}
 }
 \value{
-  a data.frame with values of indices in by and returning
-  expressions
+a data.frame with values of indices in by and returning
+expressions
 }
 \description{
-  Quick version of by using internally data.table
+Quick version of by using internally data.table
 }
 \author{
-  Sebastian Kranz
+Sebastian Kranz
 }
 
 \examples{\dontrun{

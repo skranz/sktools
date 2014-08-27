@@ -1,3 +1,9 @@
+
+deparse1 = function(call, collapse="") {
+  paste0(deparse(call, width=500),collapse=collapse)
+}
+
+
 #' Draws a base plot with a legend to the right, must play around with width to get a good looking result
 #' @export
 plot.with.legend = function(plot.expr,legend, fill, width = 5,bty="n",...) {

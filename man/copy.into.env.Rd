@@ -4,9 +4,8 @@
 #
 #}
 \usage{
-  copy.into.env(source = sys.frame(sys.parent(1)),
-    dest = sys.frame(sys.parent(1)), names = NULL,
-    exclude = NULL)
+copy.into.env(source = sys.frame(sys.parent(1)),
+  dest = sys.frame(sys.parent(1)), names = NULL, exclude = NULL)
 }
 \arguments{
   \item{name}{name under which the variables have been
@@ -33,11 +32,11 @@
   not be copied}
 }
 \value{
-  returns nothing but automatically copies the stored
-  variables into the global environment #
+returns nothing but automatically copies the stored
+variables into the global environment #
 }
 \description{
-  #Restore stored objects by copying them into the global
-  environment # #
+#Restore stored objects by copying them into the global
+environment # #
 }
 

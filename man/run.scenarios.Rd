@@ -2,9 +2,8 @@
 \alias{run.scenarios}
 \title{A helper function to simulate different scenarios. So far the function is just a simple wrapper to mapply.}
 \usage{
-  run.scenarios(fun, par,
-    show.progress.bar = interactive(), other.par = NULL,
-    ...)
+run.scenarios(fun, par, show.progress.bar = interactive(), other.par = NULL,
+  ...)
 }
 \arguments{
   \item{fun}{a function that runs the simulation for given
@@ -26,19 +25,19 @@
   won't be specified in the results.}
 }
 \value{
-  returns a data.frame that combines the results for all
-  scenarios replication of each dgp and each estimation
-  procedure and each parameter constellation. The first
-  column is an integer number specifying the number of the
-  scenario. Then columns follow for each paramter. The
-  remaining columns are the returned values by sim.fun. The
-  results can be conviniently analysed graphically, e.g.
-  with ggplot2. Aggregate statistics can for example be
-  computed by quick.by.
+returns a data.frame that combines the results for all
+scenarios replication of each dgp and each estimation
+procedure and each parameter constellation. The first
+column is an integer number specifying the number of the
+scenario. Then columns follow for each paramter. The
+remaining columns are the returned values by sim.fun. The
+results can be conviniently analysed graphically, e.g. with
+ggplot2. Aggregate statistics can for example be computed
+by quick.by.
 }
 \description{
-  A helper function to simulate different scenarios. So far
-  the function is just a simple wrapper to mapply.
+A helper function to simulate different scenarios. So far
+the function is just a simple wrapper to mapply.
 }
 
 \examples{\dontrun{

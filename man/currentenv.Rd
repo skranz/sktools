@@ -2,9 +2,9 @@
 \alias{currentenv}
 \title{Get the environment in which this function is called}
 \usage{
-  currentenv()
+currentenv()
 }
 \description{
-  Get the environment in which this function is called
+Get the environment in which this function is called
 }
 

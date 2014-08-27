@@ -2,9 +2,8 @@
 \alias{matrix.to.grid}
 \title{Convert data in matrix format to grid format with key columns corresponding to for row and col names and a value colum}
 \usage{
-  matrix.to.grid(dat, row.var = "row", col.var = "col",
-    val.var = "value", row.values = rownames(dat),
-    col.values = colnames(dat))
+matrix.to.grid(dat, row.var = "row", col.var = "col", val.var = "value",
+  row.values = rownames(dat), col.values = colnames(dat))
 }
 \arguments{
   \item{dat}{a data frame or matrix in matrix format}
@@ -23,8 +22,8 @@
   \item{col.values}{values of the column variable}
 }
 \description{
-  Convert data in matrix format to grid format with key
-  columns corresponding to for row and col names and a
-  value colum
+Convert data in matrix format to grid format with key
+columns corresponding to for row and col names and a value
+colum
 }
 

@@ -2,7 +2,7 @@
 \alias{wu.hausman.test}
 \title{A Wu-Hausman Test for a single endogenous variable}
 \usage{
-  wu.hausman.test(y, X.exo, X.endo, Z)
+wu.hausman.test(y, X.exo, X.endo, Z)
 }
 \arguments{
   \item{y}{the vector of dependent variables}
@@ -17,8 +17,8 @@
   endogenous}
 }
 \description{
-  See e.g. Green (2003) Econometric Analysis for a
-  description of the Wu-Hausman-Test
+See e.g. Green (2003) Econometric Analysis for a
+description of the Wu-Hausman-Test
 }
 
 \examples{\dontrun{

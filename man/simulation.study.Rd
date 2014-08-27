@@ -2,11 +2,10 @@
 \alias{simulation.study}
 \title{A helper function to conduct a simulation study for different parameter combinations}
 \usage{
-  simulation.study(fun, par = NULL, repl = 1, ...,
-    show.progress.bar = interactive(), add.run.id = TRUE,
-    colnames = NULL, same.seeds.each.par = TRUE,
-    seeds = floor(runif(repl, 0, .Machine$integer.max)),
-    LAPPLY = lapply)
+simulation.study(fun, par = NULL, repl = 1, ...,
+  show.progress.bar = interactive(), add.run.id = TRUE, colnames = NULL,
+  same.seeds.each.par = TRUE, seeds = floor(runif(repl, 0,
+  .Machine$integer.max)), LAPPLY = lapply)
 }
 \arguments{
   \item{fun}{a function that returns a vector, data.frame
@@ -52,15 +51,14 @@
   a computer cluster.}
 }
 \value{
-  returns a data.frame that combines the results of all
-  calls to fun and adds the corresponding parameter
-  combinantion and an index for the actual replication. The
-  data.frame can be conviniently analysed graphically, e.g.
-  with ggplot2
+returns a data.frame that combines the results of all calls
+to fun and adds the corresponding parameter combinantion
+and an index for the actual replication. The data.frame can
+be conviniently analysed graphically, e.g. with ggplot2
 }
 \description{
-  A helper function to conduct a simulation study for
-  different parameter combinations
+A helper function to conduct a simulation study for
+different parameter combinations
 }
 
 \examples{\dontrun{

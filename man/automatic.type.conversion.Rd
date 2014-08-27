@@ -2,11 +2,10 @@
 \alias{automatic.type.conversion}
 \title{Try to transform a vector or columns that are stored as characters or factors of a data.frame automatically in the approbriate types}
 \usage{
-  automatic.type.conversion(x, max.failure.rate = 0.3,
-    quiet = FALSE, name = "", cols = NULL,
-    date.class = "POSIX.ct", date.time.class = "POSIX.ct",
-    factorsAsStrings = FALSE, stringsAsFactors = FALSE,
-    thousand.sep = NULL, ...)
+automatic.type.conversion(x, max.failure.rate = 0.3, quiet = FALSE,
+  name = "", cols = NULL, date.class = "POSIX.ct",
+  date.time.class = "POSIX.ct", factorsAsStrings = FALSE,
+  stringsAsFactors = FALSE, thousand.sep = NULL, ...)
 }
 \arguments{
   \item{x}{a vector or data frame that shall be converted}
@@ -15,7 +14,7 @@
   failed to convert so that conversion still takes place}
 }
 \description{
-  So far just attempts to convert date and date.times
+So far just attempts to convert date and date.times
 }
 
 \examples{\dontrun{
