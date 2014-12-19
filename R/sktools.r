@@ -30,9 +30,35 @@ currentenv = function() {
   sys.parent(1)
 }
 
+examples.make.date.time = function() {
+  make.date.time(date="2014-01-02", hour=14)
+}
+
+#' Builds a date time object from different components
+#' @param year an integer specifying the year
+#' @param month an integer specifying the month
+#' @param day an integer specifying the day
+#' @param hour an integer specifying the hour
+#' @param min an integer specifying the minute
+#' @param sec an integer specifying the second
+#' @param date a date object or a character that can be converted to a date. If provided then year, month and day will be extracted from this date object
+#' @export
+make.date.time = function(year, month=1,day=1, hour=0, min=0, sec=0,date, tz = "") {
+  if (!missing(date)) {
+    library(lubridate)
+    if (is.character(date) | is.factor(date))
+      date = to.date.time(date)
+    year = lubridate::year(date)
+    month = lubridate::month(date)
+    day = lubridate::day(date)
+  }
+  ISOdatetime(year, month, day, hour, min,sec,tz)
+}
+
+#' Try to convert a character object to a date time object, trying out several formats
 to.date.time = function(x, orders = c(c(date.orders),outer(date.orders,time.orders,paste,sep="")),quiet  = FALSE, tz="UTC",locale=Sys.getlocale("LC_TIME"), date.orders=c("dmy","dmY","ymd","Ymd","mdy","mdY"), time.orders =  c("r","R","T","HMSOS")) {
   restore.point("to.date.time")
-  require(lubridate)
+  library(lubridate)
   if (is.factor(x))
     val = as.character(val)
   ret = tryCatch(as.POSIXct(parse_date_time(x,orders=orders,tz=tz,locale=locale,quiet=quiet)), error = function(e) rep(NA,length(x)))
