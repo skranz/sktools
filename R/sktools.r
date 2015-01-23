@@ -60,7 +60,7 @@ to.date.time = function(x, orders = c(c(date.orders),outer(date.orders,time.orde
   restore.point("to.date.time")
   library(lubridate)
   if (is.factor(x))
-    val = as.character(val)
+    x = as.character(x)
   ret = tryCatch(as.POSIXct(parse_date_time(x,orders=orders,tz=tz,locale=locale,quiet=quiet)), error = function(e) rep(NA,length(x)))
   ret
 }
