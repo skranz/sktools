@@ -106,13 +106,14 @@ examples.run.scenarios = function() {
 #' @param ... additional parameters that will be used by fun
 #' @param show.progress.bar shall a progress bar been shown?
 #' @param add.run.id shall a column be added that is a unique value for every unique call of fun
+#' @param add.par.id shall a column be added that is a unique value for every parameter combination
 #' @param colnames optionally a vector of colnames for the results returned by fun. It is quicker to set colnames just in the end, instead of fun setting names.
 #' @param same.seeds.each.par if TRUE (default) then we set for all parameter combinations with which the function is called the same random seed in the i'th replication. One effect e.g. is that if we draw some disturbances eps in our simulation the same disturbances will be drawn in the i'th repitition for all parameter values, we study. This typically facilitates the analysis of comparative statics.
 #' @param seeds if same.seeds.each.par = TRUE one can manually provide a vector of random seeds of length repl.
 #' @param LAPPLY a function that has the same behavior as lapply. One can use an different function, e.g. in order to parallelize the execution when running a simulation on a computer cluster.
 #' @return returns a data.frame that combines the results of all calls to fun and adds the corresponding parameter combinantion and an index for the actual replication. The data.frame can be conviniently analysed graphically, e.g. with ggplot2
 #' @export
-simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = interactive(), add.run.id=TRUE, colnames=NULL,same.seeds.each.par = TRUE,  seeds = floor(runif(repl,0,.Machine$integer.max)),LAPPLY = lapply ) {
+simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = interactive(), add.run.id=FALSE, add.par.id=FALSE, colnames=NULL,same.seeds.each.par = TRUE,  seeds = floor(runif(repl,0,.Machine$integer.max)),LAPPLY = lapply ) {
   args = list(...)
   
   restore.point("simulation.study")
@@ -144,6 +145,7 @@ simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = inter
       pb <- txtProgressBar(min = 1, max = repl*NROW(par.grid), style = 3)
     
     
+    pi = 1
     all.list = LAPPLY(par.id, function(pi) {
       call.par = as.list(par.grid[pi,])
       names(call.par) = names(par)
@@ -151,15 +153,24 @@ simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = inter
       res.list = LAPPLY(repl.id, repl.fun, repl=repl, pi=pi, show.progress.bar = show.progress.bar, call.par = call.par)
       
       if (add.run.id) {
-        repl.seq = unlist(lapply(1:NROW(res.list), function(i) rep(i,NROW(res.list[[i]]))))
+        repl.seq = unlist(lapply(1:NROW(res.list), function(i) {
+          res.i = res.list[[i]]
+          if (!is.data.frame(res.i) & !is(res.i,"matrix"))
+            return(i)
+          return(rep(i, NROW(res.i)))
+        }))
         res.df = cbind(run.id=repl.seq+(pi-1)*repl,do.call(rbind,res.list))
       } else {
         res.df = do.call(rbind,res.list)        
       }
       res.df
     })
-    all.par.id = unlist(lapply(1:NROW(all.list), function(i) rep(i,NROW(all.list[[i]]))))
-    all.df = cbind(par.id = all.par.id,par.grid[all.par.id,,drop=FALSE],do.call(rbind,all.list))
+    if (add.par.id) {
+      all.par.id = unlist(lapply(1:NROW(all.list), function(i) rep(i,NROW(all.list[[i]]))))
+      all.df = cbind(par.id = all.par.id,par.grid[all.par.id,,drop=FALSE],do.call(rbind,all.list))
+    } else {
+      all.df = cbind(par.grid[,,drop=FALSE],do.call(rbind,all.list))
+    }
     if (show.progress.bar)  
       close(pb)
     rownames(all.df)=NULL
