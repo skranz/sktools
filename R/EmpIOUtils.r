@@ -165,11 +165,11 @@ simulation.study = function(fun, par=NULL, repl=1,..., show.progress.bar = inter
       }
       res.df
     })
+    all.par.id = unlist(lapply(1:NROW(all.list), function(i) rep(i,NROW(all.list[[i]]))))
     if (add.par.id) {
-      all.par.id = unlist(lapply(1:NROW(all.list), function(i) rep(i,NROW(all.list[[i]]))))
       all.df = cbind(par.id = all.par.id,par.grid[all.par.id,,drop=FALSE],do.call(rbind,all.list))
     } else {
-      all.df = cbind(par.grid[,,drop=FALSE],do.call(rbind,all.list))
+      all.df = cbind(par.grid[all.par.id,,drop=FALSE],do.call(rbind,all.list))
     }
     if (show.progress.bar)  
       close(pb)
